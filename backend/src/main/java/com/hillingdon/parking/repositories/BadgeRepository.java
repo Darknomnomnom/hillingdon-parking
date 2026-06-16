@@ -1,0 +1,12 @@
+package com.hillingdon.parking.repositories;
+
+import com.hillingdon.parking.models.Badge;
+import com.hillingdon.parking.models.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface BadgeRepository extends JpaRepository<Badge, Long> {
+    List<Badge> findByStatus(Badge.BadgeStatus status);
+    List<Badge> findByUser(User user);
+}
