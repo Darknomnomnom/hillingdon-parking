@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -13,8 +14,9 @@ import java.time.Instant;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -22,9 +24,16 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    private String phone;
+
+    @Column(nullable = false, columnDefinition = "user_role")
+    private Role role = Role.PATIENT;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
