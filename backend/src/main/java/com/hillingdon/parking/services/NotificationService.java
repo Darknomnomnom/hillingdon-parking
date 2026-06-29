@@ -16,20 +16,23 @@ public class NotificationService {
 
     public void sendBookingConfirmation(Booking booking) {
         String to = booking.getPatient().getEmail();
-        String bayRef = "Floor " + booking.getBay().getFloor().getNumber() + " — Bay " + booking.getBay().getId();
+        String bayRef = booking.getBay() != null
+                ? "Floor " + booking.getBay().getFloor().getNumber() + " — Bay " + booking.getBay().getBayNumber()
+                : "To be confirmed (car park is currently full — staff will contact you)";
 
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(to);
         msg.setSubject("Your Hillingdon Hospital Parking Booking");
         msg.setText("""
                 Your parking has been reserved.
+                Confirmation code: %s
                 Bay: %s
                 Arrival time: %s
                 Vehicle: %s
 
                 Please arrive within 30 minutes of your scheduled time.
                 Hillingdon Hospital Parking Team
-                """.formatted(bayRef, booking.getAppointmentTime(), booking.getPlate()));
+                """.formatted(booking.getConfirmationCode(), bayRef, booking.getAppointmentTime(), booking.getPlate()));
 
         mailSender.send(msg);
         log.info("Sent booking confirmation to {}", to);
@@ -37,7 +40,9 @@ public class NotificationService {
 
     public void sendArrivalReminder(Booking booking) {
         String to = booking.getPatient().getEmail();
-        String bayRef = "Floor " + booking.getBay().getFloor().getNumber() + " — Bay " + booking.getBay().getId();
+        String bayRef = booking.getBay() != null
+                ? "Floor " + booking.getBay().getFloor().getNumber() + " — Bay " + booking.getBay().getBayNumber()
+                : "To be confirmed";
 
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(to);
