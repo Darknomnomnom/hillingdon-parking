@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "bookings")
@@ -13,39 +14,47 @@ import java.time.Instant;
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
     private User patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bay_id", nullable = false)
+    @JoinColumn(name = "bay_id")
     private Bay bay;
 
     @Column(nullable = false)
     private String plate;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private BookingStatus status = BookingStatus.RESERVED;
+    private BookingStatus status = BookingStatus.CONFIRMED;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VisitType visitType;
 
     @Column(nullable = false)
-    private Instant scheduledArrival;
+    private Instant appointmentTime;
 
-    private Instant arrivedAt;
-    private Instant departedAt;
+    @Column(nullable = false)
+    private Instant arrivalWindowStart;
+
+    @Column(nullable = false)
+    private Instant arrivalWindowEnd;
+
+    @Column(nullable = false, updatable = false)
+    private String confirmationCode = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+
+    private String notes;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    private Instant updatedAt;
+
     public enum BookingStatus {
-        RESERVED, ARRIVED, COMPLETED, NO_SHOW, CANCELLED
+        PENDING, CONFIRMED, ARRIVED, COMPLETED, CANCELLED, NO_SHOW
     }
 
     public enum VisitType {

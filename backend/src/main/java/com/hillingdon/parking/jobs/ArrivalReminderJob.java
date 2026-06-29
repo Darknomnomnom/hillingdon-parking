@@ -26,7 +26,7 @@ public class ArrivalReminderJob {
         Instant from = Instant.now().plus(23, ChronoUnit.HOURS);
         Instant to   = Instant.now().plus(25, ChronoUnit.HOURS);
 
-        List<Booking> upcoming = bookingRepository.findBookingsForReminder(from, to);
+        List<Booking> upcoming = bookingRepository.findBookingsForReminder(Booking.BookingStatus.CONFIRMED, from, to);
         for (Booking booking : upcoming) {
             try {
                 notificationService.sendArrivalReminder(booking);

@@ -24,7 +24,7 @@ public class ANPRSimulatorJob {
     // Fires every 2 minutes — simulates an ANPR plate-read event
     @Scheduled(fixedDelay = 120_000)
     public void simulateEntry() {
-        List<Booking> active = bookingRepository.findByStatus(Booking.BookingStatus.RESERVED);
+        List<Booking> active = bookingRepository.findByStatus(Booking.BookingStatus.CONFIRMED);
         if (active.isEmpty()) {
             log.debug("ANPR simulator: no active reservations to simulate");
             return;

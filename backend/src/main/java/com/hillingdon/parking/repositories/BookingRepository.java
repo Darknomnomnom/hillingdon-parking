@@ -4,26 +4,26 @@ import com.hillingdon.parking.models.Booking;
 import com.hillingdon.parking.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface BookingRepository extends JpaRepository<Booking, Long> {
+public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
-    List<Booking> findByPatientOrderByScheduledArrivalDesc(User patient);
+    List<Booking> findByPatientOrderByAppointmentTimeDesc(User patient);
 
     List<Booking> findByStatus(Booking.BookingStatus status);
 
     Optional<Booking> findByPlateAndStatus(String plate, Booking.BookingStatus status);
 
-    // Find bookings that are still RESERVED but past their arrival window — candidates for no-show release
-    @Query("SELECT b FROM Booking b WHERE b.status = 'RESERVED' AND b.scheduledArrival < :cutoff")
-    List<Booking> findExpiredReservations(Instant cutoff);
+    @Query("SELECT b FROM Booking b WHERE b.status = :status AND b.appointmentTime < :cutoff")
+    List<Booking> findExpiredReservations(@Param("status") Booking.BookingStatus status, @Param("cutoff") Instant cutoff);
 
-    // Find bookings due for 24h reminder
-    @Query("SELECT b FROM Booking b WHERE b.status = 'RESERVED' AND b.scheduledArrival BETWEEN :from AND :to")
-    List<Booking> findBookingsForReminder(Instant from, Instant to);
+    @Query("SELECT b FROM Booking b WHERE b.status = :status AND b.appointmentTime BETWEEN :from AND :to")
+    List<Booking> findBookingsForReminder(@Param("status") Booking.BookingStatus status, @Param("from") Instant from, @Param("to") Instant to);
 
     List<Booking> findAllByPlate(String plate);
 }

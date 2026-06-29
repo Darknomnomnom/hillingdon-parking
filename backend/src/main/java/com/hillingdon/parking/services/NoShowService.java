@@ -23,7 +23,7 @@ public class NoShowService {
     @Transactional
     public int releaseExpiredReservations() {
         Instant cutoff = Instant.now().minus(NO_SHOW_WINDOW_MINUTES, ChronoUnit.MINUTES);
-        List<Booking> expired = bookingRepository.findExpiredReservations(cutoff);
+        List<Booking> expired = bookingRepository.findExpiredReservations(Booking.BookingStatus.CONFIRMED, cutoff);
 
         for (Booking booking : expired) {
             booking.setStatus(Booking.BookingStatus.NO_SHOW);

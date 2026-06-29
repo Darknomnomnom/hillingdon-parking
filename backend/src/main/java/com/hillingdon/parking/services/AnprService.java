@@ -22,9 +22,10 @@ public class AnprService {
         AnprEvent event = new AnprEvent();
         event.setPlate(plate);
         event.setDirection(direction);
+        event.setSimulated(true);
 
         if (direction == AnprEvent.Direction.ENTRY) {
-            Optional<Booking> booking = bookingRepository.findByPlateAndStatus(plate, Booking.BookingStatus.RESERVED);
+            Optional<Booking> booking = bookingRepository.findByPlateAndStatus(plate, Booking.BookingStatus.CONFIRMED);
             booking.ifPresent(b -> {
                 event.setMatchedBooking(b);
                 b.setStatus(Booking.BookingStatus.ARRIVED);

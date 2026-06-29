@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "badges")
@@ -14,34 +15,43 @@ import java.time.LocalDate;
 public class Badge {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id")
+    private Vehicle vehicle;
+
     @Column(nullable = false)
     private String badgeNumber;
 
-    private LocalDate expiryDate;
-
-    // S3 key for uploaded photo
     @Column(nullable = false)
-    private String photoKey;
+    private String photoUrl;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BadgeStatus status = BadgeStatus.PENDING;
 
-    private Instant submittedAt = Instant.now();
-    private Instant reviewedAt;
+    @Column(nullable = false)
+    private LocalDate expiresAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewed_by")
-    private User reviewedBy;
+    @JoinColumn(name = "verified_by")
+    private User verifiedBy;
+
+    private Instant verifiedAt;
+
+    private String rejectionReason;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
+
+    private Instant updatedAt;
 
     public enum BadgeStatus {
-        PENDING, APPROVED, REJECTED
+        PENDING, VERIFIED, REJECTED
     }
 }

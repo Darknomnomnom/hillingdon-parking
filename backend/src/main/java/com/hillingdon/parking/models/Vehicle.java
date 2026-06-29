@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+import java.util.UUID;
+
 @Entity
 @Table(name = "vehicles")
 @Data
@@ -11,8 +14,8 @@ import lombok.NoArgsConstructor;
 public class Vehicle {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String plate;
@@ -21,8 +24,13 @@ public class Vehicle {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private String badgeNumber;
+    private String make;
+    private String model;
+    private String colour;
 
     @Column(nullable = false)
-    private boolean badgeVerified = false;
+    private boolean isWhitelisted = false;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
 }

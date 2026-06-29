@@ -17,7 +17,7 @@ public class BookingService {
     private final NotificationService notificationService;
 
     public List<Booking> getBookingsForPatient(User patient) {
-        return bookingRepository.findByPatientOrderByScheduledArrivalDesc(patient);
+        return bookingRepository.findByPatientOrderByAppointmentTimeDesc(patient);
     }
 
     // Full implementation in Task 4

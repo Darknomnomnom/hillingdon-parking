@@ -29,7 +29,7 @@ public class NotificationService {
 
                 Please arrive within 30 minutes of your scheduled time.
                 Hillingdon Hospital Parking Team
-                """.formatted(bayRef, booking.getScheduledArrival(), booking.getPlate()));
+                """.formatted(bayRef, booking.getAppointmentTime(), booking.getPlate()));
 
         mailSender.send(msg);
         log.info("Sent booking confirmation to {}", to);
@@ -49,7 +49,7 @@ public class NotificationService {
                 Vehicle: %s
 
                 Hillingdon Hospital Parking Team
-                """.formatted(bayRef, booking.getScheduledArrival(), booking.getPlate()));
+                """.formatted(bayRef, booking.getAppointmentTime(), booking.getPlate()));
 
         mailSender.send(msg);
         log.info("Sent arrival reminder to {}", to);
