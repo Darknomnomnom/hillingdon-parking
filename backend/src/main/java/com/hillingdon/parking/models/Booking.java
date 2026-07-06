@@ -51,7 +51,7 @@ public class Booking {
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
-    private Instant updatedAt;
+    private Instant updatedAt = Instant.now();
 
     public enum BookingStatus {
         PENDING, CONFIRMED, ARRIVED, COMPLETED, CANCELLED, NO_SHOW

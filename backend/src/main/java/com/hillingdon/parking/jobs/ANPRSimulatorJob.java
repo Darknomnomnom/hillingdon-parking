@@ -6,6 +6,7 @@ import com.hillingdon.parking.repositories.BookingRepository;
 import com.hillingdon.parking.services.AnprService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -21,9 +22,16 @@ public class ANPRSimulatorJob {
     private final AnprService anprService;
     private final Random random = new Random();
 
+    @Value("${app.anpr.simulator.enabled:true}")
+    private boolean enabled;
+
     // Fires every 2 minutes — simulates an ANPR plate-read event
     @Scheduled(fixedDelay = 120_000)
     public void simulateEntry() {
+        if (!enabled) {
+            return;
+        }
+
         List<Booking> active = bookingRepository.findByStatus(Booking.BookingStatus.CONFIRMED);
         if (active.isEmpty()) {
             log.debug("ANPR simulator: no active reservations to simulate");

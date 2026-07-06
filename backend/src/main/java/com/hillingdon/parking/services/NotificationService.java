@@ -34,8 +34,12 @@ public class NotificationService {
                 Hillingdon Hospital Parking Team
                 """.formatted(booking.getConfirmationCode(), bayRef, booking.getAppointmentTime(), booking.getPlate()));
 
-        mailSender.send(msg);
-        log.info("Sent booking confirmation to {}", to);
+        try {
+            mailSender.send(msg);
+            log.info("Sent booking confirmation to {}", to);
+        } catch (Exception e) {
+            log.warn("Could not send booking confirmation email to {}: {}", to, e.getMessage());
+        }
     }
 
     public void sendArrivalReminder(Booking booking) {
@@ -56,7 +60,11 @@ public class NotificationService {
                 Hillingdon Hospital Parking Team
                 """.formatted(bayRef, booking.getAppointmentTime(), booking.getPlate()));
 
-        mailSender.send(msg);
-        log.info("Sent arrival reminder to {}", to);
+        try {
+            mailSender.send(msg);
+            log.info("Sent arrival reminder to {}", to);
+        } catch (Exception e) {
+            log.warn("Could not send arrival reminder email to {}: {}", to, e.getMessage());
+        }
     }
 }
