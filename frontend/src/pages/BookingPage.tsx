@@ -75,7 +75,15 @@ export default function BookingPage() {
               {confirmed.bayNumber && (
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-500 uppercase tracking-wide">Bay number</span>
-                  <span className="font-semibold text-gray-900">{confirmed.bayNumber}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-900">{confirmed.bayNumber}</span>
+                    {confirmed.bayType === 'ACCESSIBLE' && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Accessible</span>
+                    )}
+                    {confirmed.bayType === 'EV' && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">EV charging</span>
+                    )}
+                  </div>
                 </div>
               )}
               {confirmed.floorName && (
