@@ -49,7 +49,7 @@ public class Badge {
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
-    private Instant updatedAt;
+    private Instant updatedAt = Instant.now();
 
     public enum BadgeStatus {
         PENDING, VERIFIED, REJECTED
