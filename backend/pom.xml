@@ -45,12 +45,6 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!-- Quartz Scheduler -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-quartz</artifactId>
-        </dependency>
-
         <!-- PostgreSQL Driver -->
         <dependency>
             <groupId>org.postgresql</groupId>
