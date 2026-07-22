@@ -142,4 +142,9 @@ export interface Badge {
   expiresAt: string;
   rejectionReason?: string;
   createdAt: string;
+  patientName?: string;
+  patientEmail?: string;
+  plate?: string;
+  verifiedByName?: string;
+  verifiedAt?: string;
 }

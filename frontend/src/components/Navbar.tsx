@@ -37,9 +37,14 @@ export default function Navbar() {
                 </>
               )}
               {(user.role === 'STAFF' || user.role === 'ADMIN') && (
-                <Link to="/dashboard" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
-                  Dashboard
-                </Link>
+                <>
+                  <Link to="/dashboard" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
+                    Dashboard
+                  </Link>
+                  <Link to="/badges" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
+                    Badge Queue
+                  </Link>
+                </>
               )}
               {user.role === 'ADMIN' && (
                 <Link to="/admin" className="text-sm text-gray-600 hover:text-blue-600 font-medium">

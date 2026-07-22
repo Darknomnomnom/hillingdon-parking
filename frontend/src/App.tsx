@@ -7,6 +7,7 @@ import BookingPage from './pages/BookingPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/AdminPage';
+import BadgeQueuePage from './pages/BadgeQueuePage';
 import type { ReactNode } from 'react';
 
 function homeFor(role: string | undefined) {
@@ -48,6 +49,7 @@ function AppRoutes() {
         <Route path="/book" element={<PatientRoute><BookingPage /></PatientRoute>} />
         <Route path="/my-bookings" element={<PatientRoute><MyBookingsPage /></PatientRoute>} />
         <Route path="/dashboard" element={<StaffRoute><DashboardPage /></StaffRoute>} />
+        <Route path="/badges" element={<StaffRoute><BadgeQueuePage /></StaffRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -22,3 +22,12 @@ export const submitBadge = (data: SubmitBadgeRequest) => {
 
 export const getMyBadges = () =>
   client.get<Badge[]>('/badges/my');
+
+export const getPendingBadges = () =>
+  client.get<Badge[]>('/badges/pending');
+
+export const approveBadge = (id: string) =>
+  client.patch<Badge>(`/badges/${id}/approve`);
+
+export const rejectBadge = (id: string, reason: string) =>
+  client.patch<Badge>(`/badges/${id}/reject`, { reason });
