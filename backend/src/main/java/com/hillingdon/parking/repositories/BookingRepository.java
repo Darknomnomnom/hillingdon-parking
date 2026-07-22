@@ -26,4 +26,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findBookingsForReminder(@Param("status") Booking.BookingStatus status, @Param("from") Instant from, @Param("to") Instant to);
 
     List<Booking> findAllByPlate(String plate);
+
+    @Query("SELECT b FROM Booking b WHERE b.status = :status AND b.arrivalWindowStart BETWEEN :from AND :to")
+    List<Booking> findByStatusAndArrivalWindowStartBetween(@Param("status") Booking.BookingStatus status, @Param("from") Instant from, @Param("to") Instant to);
 }

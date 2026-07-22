@@ -1,6 +1,7 @@
 package com.hillingdon.parking.services;
 
 import com.hillingdon.parking.models.AnprEvent;
+import com.hillingdon.parking.models.Bay;
 import com.hillingdon.parking.models.Booking;
 import com.hillingdon.parking.repositories.AnprEventRepository;
 import com.hillingdon.parking.repositories.BookingRepository;
@@ -28,7 +29,22 @@ public class AnprService {
             Optional<Booking> booking = bookingRepository.findByPlateAndStatus(plate, Booking.BookingStatus.CONFIRMED);
             booking.ifPresent(b -> {
                 event.setMatchedBooking(b);
+                event.setBay(b.getBay());
                 b.setStatus(Booking.BookingStatus.ARRIVED);
+                if (b.getBay() != null) {
+                    b.getBay().setStatus(Bay.BayStatus.OCCUPIED);
+                }
+                bookingRepository.save(b);
+            });
+        } else {
+            Optional<Booking> booking = bookingRepository.findByPlateAndStatus(plate, Booking.BookingStatus.ARRIVED);
+            booking.ifPresent(b -> {
+                event.setMatchedBooking(b);
+                event.setBay(b.getBay());
+                b.setStatus(Booking.BookingStatus.COMPLETED);
+                if (b.getBay() != null) {
+                    b.getBay().setStatus(Bay.BayStatus.AVAILABLE);
+                }
                 bookingRepository.save(b);
             });
         }

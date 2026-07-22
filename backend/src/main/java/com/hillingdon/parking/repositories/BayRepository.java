@@ -25,6 +25,18 @@ public interface BayRepository extends JpaRepository<Bay, UUID> {
     @Query("SELECT COUNT(b) FROM Bay b WHERE b.floor = :floor AND b.status = :status")
     long countByFloorAndStatus(@Param("floor") Floor floor, @Param("status") Bay.BayStatus status);
 
+    @Query("SELECT COUNT(b) FROM Bay b WHERE b.type = :type")
+    long countByType(@Param("type") Bay.BayType type);
+
+    @Query("SELECT COUNT(b) FROM Bay b WHERE b.type = :type AND b.status = :status")
+    long countByTypeAndStatus(@Param("type") Bay.BayType type, @Param("status") Bay.BayStatus status);
+
+    @Query("SELECT COUNT(b) FROM Bay b WHERE b.floor = :floor AND b.type = :type")
+    long countByFloorAndType(@Param("floor") Floor floor, @Param("type") Bay.BayType type);
+
+    @Query("SELECT COUNT(b) FROM Bay b WHERE b.floor = :floor AND b.type = :type AND b.status = :status")
+    long countByFloorAndTypeAndStatus(@Param("floor") Floor floor, @Param("type") Bay.BayType type, @Param("status") Bay.BayStatus status);
+
     Optional<Bay> findFirstByStatusAndIsAccessibleOrderByIdAsc(Bay.BayStatus status, boolean isAccessible);
 
     Optional<Bay> findFirstByStatusAndTypeOrderByIdAsc(Bay.BayStatus status, Bay.BayType type);

@@ -69,7 +69,7 @@ public class BookingService {
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
         boolean isOwner = booking.getPatient().getId().equals(requestingUser.getId());
-        boolean isStaff = requestingUser.getRole() == User.Role.STAFF;
+        boolean isStaff = requestingUser.getRole() == User.Role.STAFF || requestingUser.getRole() == User.Role.ADMIN;
 
         if (!isOwner && !isStaff) {
             throw new SecurityException("Not authorised to cancel this booking");
