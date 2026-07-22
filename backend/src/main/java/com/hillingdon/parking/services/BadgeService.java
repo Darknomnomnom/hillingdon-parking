@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,47 @@ public class BadgeService {
 
     public List<Badge> getBadgesForUser(User user) {
         return badgeRepository.findByUser(user);
+    }
+
+    public Badge approveBadge(UUID id, User staff) {
+        Badge badge = badgeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Badge not found"));
+        if (badge.getStatus() != Badge.BadgeStatus.PENDING) {
+            throw new IllegalStateException("Badge has already been reviewed");
+        }
+
+        badge.setStatus(Badge.BadgeStatus.VERIFIED);
+        badge.setVerifiedBy(staff);
+        badge.setVerifiedAt(Instant.now());
+        badge.setUpdatedAt(Instant.now());
+
+        Vehicle vehicle = badge.getVehicle();
+        if (vehicle != null && !vehicle.isWhitelisted()) {
+            vehicle.setWhitelisted(true);
+            vehicleRepository.save(vehicle);
+        }
+
+        return badgeRepository.save(badge);
+    }
+
+    public Badge rejectBadge(UUID id, User staff, String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("A reason is required to reject a badge");
+        }
+
+        Badge badge = badgeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Badge not found"));
+        if (badge.getStatus() != Badge.BadgeStatus.PENDING) {
+            throw new IllegalStateException("Badge has already been reviewed");
+        }
+
+        badge.setStatus(Badge.BadgeStatus.REJECTED);
+        badge.setVerifiedBy(staff);
+        badge.setVerifiedAt(Instant.now());
+        badge.setRejectionReason(reason);
+        badge.setUpdatedAt(Instant.now());
+
+        return badgeRepository.save(badge);
     }
 
     /**

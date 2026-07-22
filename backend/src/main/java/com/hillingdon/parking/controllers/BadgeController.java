@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/badges")
@@ -60,16 +61,26 @@ public class BadgeController {
 
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
-    public ResponseEntity<?> approveBadge(@PathVariable Long id) {
-        // Task 8
-        return ResponseEntity.ok().build();
+    public ResponseEntity<BadgeResponse> approveBadge(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails principal) {
+        User staff = resolveUser(principal);
+        BadgeResponse response = badgeService.toResponse(badgeService.approveBadge(id, staff));
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}/reject")
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
-    public ResponseEntity<?> rejectBadge(@PathVariable Long id) {
-        // Task 8
-        return ResponseEntity.ok().build();
+    public ResponseEntity<BadgeResponse> rejectBadge(
+            @PathVariable UUID id,
+            @RequestBody RejectBadgeRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        User staff = resolveUser(principal);
+        BadgeResponse response = badgeService.toResponse(badgeService.rejectBadge(id, staff, request.reason()));
+        return ResponseEntity.ok(response);
+    }
+
+    public record RejectBadgeRequest(String reason) {
     }
 
     private User resolveUser(UserDetails principal) {
