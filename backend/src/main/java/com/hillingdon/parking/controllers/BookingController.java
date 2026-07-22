@@ -26,13 +26,13 @@ public class BookingController {
     private final UserRepository userRepository;
 
     @GetMapping
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<List<BookingResponse>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
     @GetMapping("/my")
-    @PreAuthorize("hasAnyRole('PATIENT', 'STAFF')")
+    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<List<BookingResponse>> getMyBookings(@AuthenticationPrincipal UserDetails principal) {
         User user = resolveUser(principal);
         return ResponseEntity.ok(bookingService.getMyBookings(user));
@@ -49,7 +49,7 @@ public class BookingController {
     }
 
     @PatchMapping("/{id}/cancel")
-    @PreAuthorize("hasAnyRole('PATIENT', 'STAFF')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'STAFF', 'ADMIN')")
     public ResponseEntity<BookingResponse> cancelBooking(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails principal) {

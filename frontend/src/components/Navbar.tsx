@@ -26,12 +26,26 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <Link to="/book" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
-                Book Parking
-              </Link>
-              <Link to="/my-bookings" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
-                My Bookings
-              </Link>
+              {user.role === 'PATIENT' && (
+                <>
+                  <Link to="/book" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
+                    Book Parking
+                  </Link>
+                  <Link to="/my-bookings" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
+                    My Bookings
+                  </Link>
+                </>
+              )}
+              {(user.role === 'STAFF' || user.role === 'ADMIN') && (
+                <Link to="/dashboard" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
+                  Dashboard
+                </Link>
+              )}
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
+                  Admin
+                </Link>
+              )}
               <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-200">
                 <span className="text-sm text-gray-700">
                   {user.firstName} {user.lastName}
