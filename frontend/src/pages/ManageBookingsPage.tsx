@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAllBookings, cancelBooking, markNoShow } from '../api/bookings';
+import { simulateArrival } from '../api/anpr';
 import type { Booking, BookingStatus, VisitType } from '../types';
 
 const STATUS_STYLES: Record<BookingStatus, string> = {
@@ -29,13 +30,16 @@ export default function ManageBookingsPage() {
   const [error, setError] = useState('');
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [markingNoShow, setMarkingNoShow] = useState<string | null>(null);
+  const [simulatingArrival, setSimulatingArrival] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'ALL'>('ALL');
 
-  useEffect(() => {
+  const loadBookings = () =>
     getAllBookings()
       .then(r => setBookings(r.data))
-      .catch(() => setError('Failed to load bookings.'))
-      .finally(() => setLoading(false));
+      .catch(() => setError('Failed to load bookings.'));
+
+  useEffect(() => {
+    loadBookings().finally(() => setLoading(false));
   }, []);
 
   const handleCancel = async (id: string) => {
@@ -61,6 +65,18 @@ export default function ManageBookingsPage() {
       alert('Could not mark booking as a no-show. Please try again.');
     } finally {
       setMarkingNoShow(null);
+    }
+  };
+
+  const handleSimulateArrival = async (b: Booking) => {
+    setSimulatingArrival(b.id);
+    try {
+      await simulateArrival(b.plate);
+      await loadBookings();
+    } catch {
+      alert('Could not simulate arrival. Please try again.');
+    } finally {
+      setSimulatingArrival(null);
     }
   };
 
@@ -157,6 +173,15 @@ export default function ManageBookingsPage() {
               </div>
 
               <div className="flex flex-col gap-2 shrink-0">
+                {b.status === 'CONFIRMED' && (
+                  <button
+                    onClick={() => handleSimulateArrival(b)}
+                    disabled={simulatingArrival === b.id}
+                    className="text-xs text-green-600 hover:text-green-700 border border-green-200 hover:border-green-300 px-3 py-1.5 rounded-lg disabled:opacity-50 transition-colors"
+                  >
+                    {simulatingArrival === b.id ? 'Simulating…' : 'Simulate arrival'}
+                  </button>
+                )}
                 {b.status === 'CONFIRMED' && (
                   <button
                     onClick={() => handleMarkNoShow(b.id)}
