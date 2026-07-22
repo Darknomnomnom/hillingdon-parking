@@ -253,3 +253,16 @@ WHERE f.number = 5;
 
 -- Tables are accessible to the service role key used by Spring Boot.
 -- No RLS policies are applied at this stage.
+
+-- ============================================================
+-- REALTIME — powers the live staff dashboard
+-- Frontend subscribes directly to these tables via supabase-js
+-- using the anon key (read-only). Since RLS is disabled above,
+-- the anon role needs an explicit SELECT grant to receive
+-- postgres_changes payloads. Write access stays JWT-gated via
+-- Spring Security — the anon key is read-only here.
+-- ============================================================
+
+GRANT SELECT ON bookings, anpr_events, bays, badges TO anon;
+
+ALTER PUBLICATION supabase_realtime ADD TABLE bookings, anpr_events, bays, badges;
