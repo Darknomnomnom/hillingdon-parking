@@ -20,6 +20,9 @@
     <properties>
         <java.version>23</java.version>
         <lombok.version>1.18.36</lombok.version>
+        <!-- Spring Boot 3.2.5 pins Mockito 5.7.0 / ByteBuddy 1.14.13, which can't instrument classes under JDK 23 -->
+        <mockito.version>5.14.2</mockito.version>
+        <byte-buddy.version>1.15.10</byte-buddy.version>
     </properties>
 
     <dependencies>
