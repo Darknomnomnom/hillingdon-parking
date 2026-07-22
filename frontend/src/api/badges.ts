@@ -26,6 +26,9 @@ export const getMyBadges = () =>
 export const getPendingBadges = () =>
   client.get<Badge[]>('/badges/pending');
 
+export const getReviewedBadges = () =>
+  client.get<Badge[]>('/badges/reviewed');
+
 export const approveBadge = (id: string) =>
   client.patch<Badge>(`/badges/${id}/approve`);
 

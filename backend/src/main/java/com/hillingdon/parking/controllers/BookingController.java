@@ -57,6 +57,15 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.cancelBooking(id, user));
     }
 
+    // Manual override for demo purposes — the real no-show detection is
+    // NoShowReleaseJob, which only fires 30 min after appointmentTime.
+    // This lets staff force the outcome immediately instead of waiting.
+    @PatchMapping("/{id}/no-show")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<BookingResponse> markNoShow(@PathVariable UUID id) {
+        return ResponseEntity.ok(bookingService.markNoShow(id));
+    }
+
     private User resolveUser(UserDetails principal) {
         return userRepository.findByEmail(principal.getUsername())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database"));

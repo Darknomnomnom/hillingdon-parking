@@ -41,6 +41,9 @@ export default function Navbar() {
                   <Link to="/dashboard" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
                     Dashboard
                   </Link>
+                  <Link to="/bookings" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
+                    Manage Bookings
+                  </Link>
                   <Link to="/badges" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
                     Badge Queue
                   </Link>

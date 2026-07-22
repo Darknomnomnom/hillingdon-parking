@@ -35,6 +35,15 @@ public class BadgeController {
         return ResponseEntity.ok(badges);
     }
 
+    @GetMapping("/reviewed")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<List<BadgeResponse>> getReviewedBadges() {
+        List<BadgeResponse> badges = badgeService.getReviewedBadges().stream()
+                .map(badgeService::toResponse)
+                .toList();
+        return ResponseEntity.ok(badges);
+    }
+
     @GetMapping("/my")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<List<BadgeResponse>> getMyBadges(@AuthenticationPrincipal UserDetails principal) {

@@ -10,6 +10,7 @@ import {
 import type {
   KpiSummary, FloorBreakdownItem, HourlyTrendPoint, NoShowStats, UserDistribution,
 } from '../types';
+import { supabase } from '../lib/supabaseClient';
 
 const GREEN = '#22C55E';
 const AMBER = '#F59E0B';
@@ -126,18 +127,46 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      getKpis(), getFloorBreakdown(), getHourlyTrends(), getNoShowStats(), getUserDistribution(),
-    ])
-      .then(([k, f, t, n, d]) => {
-        setKpis(k.data);
-        setFloors(f.data);
-        setTrends(t.data);
-        setNoShows(n.data);
-        setDistribution(d.data);
-      })
-      .catch(() => setError('Failed to load dashboard data.'))
-      .finally(() => setLoading(false));
+    const loadDashboard = (showSpinner: boolean) => {
+      if (showSpinner) setLoading(true);
+      return Promise.all([
+        getKpis(), getFloorBreakdown(), getHourlyTrends(), getNoShowStats(), getUserDistribution(),
+      ])
+        .then(([k, f, t, n, d]) => {
+          setKpis(k.data);
+          setFloors(f.data);
+          setTrends(t.data);
+          setNoShows(n.data);
+          setDistribution(d.data);
+          setError('');
+        })
+        .catch(() => setError('Failed to load dashboard data.'))
+        .finally(() => setLoading(false));
+    };
+
+    loadDashboard(true);
+
+    // Live updates: any change to the tables the KPI/floor/no-show
+    // queries are derived from triggers a refetch. Debounced since
+    // ANPR/booking events can arrive in quick bursts.
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const refetch = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => loadDashboard(false), 500);
+    };
+
+    const channel = supabase
+      .channel('dashboard-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, refetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'anpr_events' }, refetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bays' }, refetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'badges' }, refetch)
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (loading) {
@@ -207,12 +236,12 @@ export default function DashboardPage() {
               {distribution.trendVsLastWeekPercent >= 0 ? '↑' : '↓'} {Math.abs(Math.round(distribution.trendVsLastWeekPercent))}% vs last week
             </span>
           </div>
-          <p className="text-sm text-gray-500 mb-4">{distribution.totalActive} total active users</p>
+          <p className="text-sm text-gray-500 mb-4">{distribution.totalActive} vehicles currently on site</p>
           <div className="space-y-4">
-            <DistributionBar label="Pre-booked patients" count={distribution.prebookedPatients.count} percent={distribution.prebookedPatients.percent} color={BLUE} />
-            <DistributionBar label="Drive-in patients" count={distribution.driveInPatients.count} percent={distribution.driveInPatients.percent} color={ORANGE} />
-            <DistributionBar label="Doctors" count={distribution.doctors.count} percent={distribution.doctors.percent} color={PURPLE} />
-            <DistributionBar label="Premium parking" count={distribution.premiumParking.count} percent={distribution.premiumParking.percent} color={AMBER} />
+            <DistributionBar label="Pre-booked patients (on site)" count={distribution.prebookedPatients.count} percent={distribution.prebookedPatients.percent} color={BLUE} />
+            <DistributionBar label="Drive-in patients (on site)" count={distribution.driveInPatients.count} percent={distribution.driveInPatients.percent} color={ORANGE} />
+            <DistributionBar label="Doctors (on site)" count={distribution.doctors.count} percent={distribution.doctors.percent} color={PURPLE} />
+            <DistributionBar label="Premium parking (on site)" count={distribution.premiumParking.count} percent={distribution.premiumParking.percent} color={AMBER} />
           </div>
         </div>
 

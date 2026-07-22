@@ -74,6 +74,10 @@ public class BadgeService {
         return badgeRepository.findByStatus(Badge.BadgeStatus.PENDING);
     }
 
+    public List<Badge> getReviewedBadges() {
+        return badgeRepository.findByStatusNotOrderByVerifiedAtDesc(Badge.BadgeStatus.PENDING);
+    }
+
     public List<Badge> getBadgesForUser(User user) {
         return badgeRepository.findByUser(user);
     }

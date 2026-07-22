@@ -94,4 +94,24 @@ public class BookingService {
 
         return BookingResponse.from(booking);
     }
+
+    @Transactional
+    public BookingResponse markNoShow(UUID id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+        if (booking.getStatus() != Booking.BookingStatus.CONFIRMED) {
+            throw new IllegalStateException("Only a confirmed booking that hasn't arrived can be marked as a no-show");
+        }
+
+        if (booking.getBay() != null) {
+            bayAssignmentService.releaseBay(booking.getBay());
+        }
+
+        booking.setStatus(Booking.BookingStatus.NO_SHOW);
+        booking.setUpdatedAt(Instant.now());
+        bookingRepository.save(booking);
+
+        return BookingResponse.from(booking);
+    }
 }

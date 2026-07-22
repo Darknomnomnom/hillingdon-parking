@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface BadgeRepository extends JpaRepository<Badge, UUID> {
     List<Badge> findByStatus(Badge.BadgeStatus status);
     List<Badge> findByUser(User user);
+    List<Badge> findByStatusNotOrderByVerifiedAtDesc(Badge.BadgeStatus status);
 }

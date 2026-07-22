@@ -7,5 +7,11 @@ export const createBooking = (data: CreateBookingRequest) =>
 export const getMyBookings = () =>
   client.get<Booking[]>('/bookings/my');
 
+export const getAllBookings = () =>
+  client.get<Booking[]>('/bookings');
+
 export const cancelBooking = (id: string) =>
   client.patch<Booking>(`/bookings/${id}/cancel`);
+
+export const markNoShow = (id: string) =>
+  client.patch<Booking>(`/bookings/${id}/no-show`);
