@@ -24,6 +24,8 @@ CREATE TYPE anpr_direction AS ENUM ('entry', 'exit');
 
 CREATE TYPE badge_status AS ENUM ('pending', 'verified', 'rejected');
 
+CREATE TYPE staff_plate_category AS ENUM ('doctor', 'staff');
+
 -- ============================================================
 -- TABLES
 -- ============================================================
@@ -113,16 +115,28 @@ CREATE TABLE bookings (
     updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Doctor/staff plates pre-registered via HR (see CLAUDE.md ANPR flow) — ANPR auto-categorises
+-- these on arrival without a booking. Not linked to a users row: HR registration is independent
+-- of whether the doctor/staff member has ever logged into the portal.
+CREATE TABLE staff_plates (
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    plate        TEXT UNIQUE NOT NULL,
+    holder_name  TEXT NOT NULL,
+    category     staff_plate_category NOT NULL DEFAULT 'staff',
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ANPR plate-read events (simulated in POC via Quartz job)
 CREATE TABLE anpr_events (
-    id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    plate              TEXT NOT NULL,
-    direction          anpr_direction NOT NULL,
-    matched_booking_id UUID REFERENCES bookings(id) ON DELETE SET NULL,
-    bay_id             UUID REFERENCES bays(id) ON DELETE SET NULL,
-    camera_id          TEXT,
-    timestamp          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    is_simulated       BOOLEAN NOT NULL DEFAULT FALSE
+    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    plate                 TEXT NOT NULL,
+    direction             anpr_direction NOT NULL,
+    matched_booking_id    UUID REFERENCES bookings(id) ON DELETE SET NULL,
+    matched_staff_plate_id UUID REFERENCES staff_plates(id) ON DELETE SET NULL,
+    bay_id                UUID REFERENCES bays(id) ON DELETE SET NULL,
+    camera_id             TEXT,
+    timestamp             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_simulated          BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- ============================================================
@@ -142,6 +156,10 @@ CREATE INDEX idx_bookings_appt    ON bookings(appointment_time);
 CREATE INDEX idx_anpr_plate       ON anpr_events(plate);
 CREATE INDEX idx_anpr_timestamp   ON anpr_events(timestamp);
 CREATE INDEX idx_anpr_booking     ON anpr_events(matched_booking_id);
+CREATE INDEX idx_anpr_bay         ON anpr_events(bay_id);
+CREATE INDEX idx_anpr_staff_plate ON anpr_events(matched_staff_plate_id);
+
+CREATE INDEX idx_staff_plates_plate ON staff_plates(plate);
 
 CREATE INDEX idx_vehicles_user    ON vehicles(user_id);
 CREATE INDEX idx_vehicles_plate   ON vehicles(plate);
@@ -234,6 +252,19 @@ SELECT f.id,
        gs.n > 30
 FROM floors f, generate_series(1, 50) AS gs(n)
 WHERE f.number = 5;
+
+-- ============================================================
+-- SEED DATA — Doctor/Staff Plates (pre-registered via HR)
+-- ============================================================
+
+-- Plates stored uppercase with no whitespace, matching how BookingService/BadgeService
+-- normalise plates elsewhere (plate.toUpperCase().replaceAll("\\s+", "")).
+INSERT INTO staff_plates (plate, holder_name, category) VALUES
+    ('DR01HHT', 'Dr. A. Chowdhury', 'doctor'),
+    ('DR02HHT', 'Dr. S. Patel',     'doctor'),
+    ('DR03HHT', 'Dr. L. Okafor',    'doctor'),
+    ('ST01HHT', 'M. Reyes (Estates)', 'staff'),
+    ('ST02HHT', 'J. Kaur (Portering)', 'staff');
 
 -- ============================================================
 -- SEED DATA — Demo Users

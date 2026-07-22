@@ -6,9 +6,12 @@ import com.hillingdon.parking.dto.HourlyTrendPoint;
 import com.hillingdon.parking.dto.KpiSummaryResponse;
 import com.hillingdon.parking.dto.NoShowStatsResponse;
 import com.hillingdon.parking.dto.UserDistributionResponse;
+import com.hillingdon.parking.models.AnprEvent;
 import com.hillingdon.parking.models.Bay;
 import com.hillingdon.parking.models.Booking;
 import com.hillingdon.parking.models.Floor;
+import com.hillingdon.parking.models.StaffPlate;
+import com.hillingdon.parking.repositories.AnprEventRepository;
 import com.hillingdon.parking.repositories.BayRepository;
 import com.hillingdon.parking.repositories.BookingRepository;
 import com.hillingdon.parking.repositories.FloorRepository;
@@ -28,15 +31,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * NOTE: the ANPR simulator only fires ENTRY events for pre-booked plates and never
- * fires EXIT events or drive-in reads (see AnprService/ANPRSimulatorJob), so there is
- * no real "completed parking session" history to derive duration/revenue from. Revenue
- * and duration KPIs are instead computed from a live snapshot of currently ARRIVED
- * bookings (elapsed time since appointmentTime x POC rate), not historical sessions.
- * Drive-in and Doctors buckets are 0 until those data sources exist.
+ * fires EXIT events (see ANPRSimulatorJob) — only the manual "Simulate arrival" trigger
+ * and drive-in/staff reads route through AnprService's non-booking path. Revenue and
+ * duration KPIs for booked patients are computed from a live snapshot of currently
+ * ARRIVED bookings (elapsed time since appointmentTime x POC rate), not historical
+ * completed sessions. Drive-in and Doctors buckets are derived from bays that are
+ * OCCUPIED but not attached to any ARRIVED booking, categorised via each such bay's
+ * latest ANPR entry event (see #nonBookingOccupiedBays).
  */
 @Service
 @RequiredArgsConstructor
@@ -47,6 +53,7 @@ public class DashboardService {
     private final BayRepository bayRepository;
     private final FloorRepository floorRepository;
     private final BookingRepository bookingRepository;
+    private final AnprEventRepository anprEventRepository;
 
     public KpiSummaryResponse getKpiSummary() {
         KpiSummaryResponse response = new KpiSummaryResponse();
@@ -91,7 +98,8 @@ public class DashboardService {
             minutesByZone.computeIfAbsent(zone, z -> new ArrayList<>()).add(minutes);
         }
 
-        BigDecimal driveInRevenue = BigDecimal.ZERO; // TODO: no drive-in ANPR simulation yet
+        NonBookingStats nonBooking = computeNonBookingStats(arrived, now);
+        BigDecimal driveInRevenue = nonBooking.driveInRevenue();
         response.setPremiumRevenueToday(premiumRevenue);
         response.setTotalRevenueToday(new KpiSummaryResponse.RevenueBreakdown(
                 prebookedRevenue, driveInRevenue, premiumRevenue,
@@ -226,8 +234,10 @@ public class DashboardService {
 
         long premiumCount = arrived.stream().filter(b -> b.getBay() != null && b.getBay().isPremium()).count();
         long prebookedCount = arrived.size() - premiumCount;
-        long driveInCount = 0; // TODO: ANPR simulator doesn't simulate drive-ins yet
-        long doctorsCount = 0; // TODO: needs a staff/doctor plate registry (see CLAUDE.md)
+
+        NonBookingStats nonBooking = computeNonBookingStats(arrived, Instant.now());
+        long driveInCount = nonBooking.driveInCount();
+        long doctorsCount = nonBooking.doctorsCount();
 
         long totalActive = prebookedCount + premiumCount + driveInCount + doctorsCount;
 
@@ -253,5 +263,49 @@ public class DashboardService {
     private UserDistributionResponse.Category toCategory(long count, long total) {
         double percent = total == 0 ? 0 : (count * 100.0) / total;
         return new UserDistributionResponse.Category(count, percent);
+    }
+
+    /**
+     * OCCUPIED bays not attached to any currently-ARRIVED booking are occupied by a
+     * drive-in or a pre-registered doctor/staff plate (see AnprService#processEntry).
+     * Each such bay's latest ANPR entry event tells us which: STAFF plates park free
+     * and aren't shown in any KPI bucket, DOCTOR plates count towards "Doctors", and
+     * unmatched entries are paying drive-in patients.
+     */
+    private NonBookingStats computeNonBookingStats(List<Booking> arrivedBookings, Instant now) {
+        Set<java.util.UUID> bookedBayIds = arrivedBookings.stream()
+                .filter(b -> b.getBay() != null)
+                .map(b -> b.getBay().getId())
+                .collect(Collectors.toSet());
+
+        long driveInCount = 0;
+        long doctorsCount = 0;
+        BigDecimal driveInRevenue = BigDecimal.ZERO;
+
+        for (Bay bay : bayRepository.findByStatus(Bay.BayStatus.OCCUPIED)) {
+            if (bookedBayIds.contains(bay.getId())) continue;
+
+            AnprEvent entry = anprEventRepository
+                    .findTopByBayAndDirectionOrderByTimestampDesc(bay, AnprEvent.Direction.ENTRY)
+                    .orElse(null);
+            if (entry == null) continue;
+
+            StaffPlate staffPlate = entry.getMatchedStaffPlate();
+            if (staffPlate != null && staffPlate.getCategory() == StaffPlate.Category.DOCTOR) {
+                doctorsCount++;
+            } else if (staffPlate == null) {
+                driveInCount++;
+                long minutes = Math.max(0, Duration.between(entry.getTimestamp(), now).toMinutes());
+                BigDecimal rate = ParkingRates.HOURLY_RATES.get(bay.getType()).add(ParkingRates.DRIVE_IN_SURCHARGE);
+                BigDecimal hours = BigDecimal.valueOf(minutes).divide(BigDecimal.valueOf(60), 4, RoundingMode.HALF_UP);
+                driveInRevenue = driveInRevenue.add(rate.multiply(hours).setScale(2, RoundingMode.HALF_UP));
+            }
+            // STAFF category: occupies a bay for free, not counted in any KPI bucket.
+        }
+
+        return new NonBookingStats(driveInCount, doctorsCount, driveInRevenue);
+    }
+
+    private record NonBookingStats(long driveInCount, long doctorsCount, BigDecimal driveInRevenue) {
     }
 }

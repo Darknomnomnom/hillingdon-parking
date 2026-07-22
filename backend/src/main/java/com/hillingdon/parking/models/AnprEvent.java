@@ -28,6 +28,10 @@ public class AnprEvent {
     private Booking matchedBooking;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "matched_staff_plate_id")
+    private StaffPlate matchedStaffPlate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bay_id")
     private Bay bay;
 
