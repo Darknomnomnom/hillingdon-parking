@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createBooking } from '../api/bookings';
+import { submitBadge } from '../api/badges';
 import type { Booking, VisitType } from '../types';
 
 const VISIT_TYPE_LABELS: Record<VisitType, string> = {
@@ -27,25 +28,52 @@ export default function BookingPage() {
     appointmentTime: '',
     needsAccessible: false,
     notes: '',
+    badgeNumber: '',
+    badgeExpiresAt: '',
+    badgePhoto: null as File | null,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState<Booking | null>(null);
+  const [badgeSubmitted, setBadgeSubmitted] = useState(false);
+  const [badgeWarning, setBadgeWarning] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (form.needsAccessible && !form.badgePhoto) {
+      setError('Please upload a photo of your Blue Badge');
+      return;
+    }
+
     setLoading(true);
     try {
+      const plate = form.plate.toUpperCase().replace(/\s/g, '');
       const { data } = await createBooking({
-        plate: form.plate.toUpperCase().replace(/\s/g, ''),
+        plate,
         visitType: form.visitType,
         appointmentTime: localDatetimeToInstant(form.appointmentTime),
         needsAccessible: form.needsAccessible,
         notes: form.notes || undefined,
       });
       setConfirmed(data);
+
+      if (form.needsAccessible && form.badgePhoto) {
+        try {
+          await submitBadge({
+            plate,
+            badgeNumber: form.badgeNumber,
+            expiresAt: form.badgeExpiresAt,
+            photo: form.badgePhoto,
+          });
+          setBadgeSubmitted(true);
+        } catch (badgeErr: unknown) {
+          const msg = (badgeErr as { response?: { data?: { message?: string } } })?.response?.data?.message;
+          setBadgeWarning(msg || 'Your booking is confirmed, but we could not save your Blue Badge photo. Please try uploading it again from My Bookings.');
+        }
+      }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg || 'Could not create booking. Please try again.');
@@ -123,6 +151,21 @@ export default function BookingPage() {
               </p>
             </div>
 
+            {badgeSubmitted && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left mb-6">
+                <p className="text-sm text-amber-800 font-medium mb-1">Blue Badge submitted for review</p>
+                <p className="text-xs text-amber-700">
+                  Staff will verify your badge before your visit. No further action is needed from you.
+                </p>
+              </div>
+            )}
+
+            {badgeWarning && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-left mb-6">
+                <p className="text-xs text-red-700">{badgeWarning}</p>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
                 onClick={() => navigate('/my-bookings')}
@@ -131,7 +174,12 @@ export default function BookingPage() {
                 View my bookings
               </button>
               <button
-                onClick={() => { setConfirmed(null); setForm({ plate: '', visitType: 'OUTPATIENT', appointmentTime: '', needsAccessible: false, notes: '' }); }}
+                onClick={() => {
+                  setConfirmed(null);
+                  setBadgeSubmitted(false);
+                  setBadgeWarning('');
+                  setForm({ plate: '', visitType: 'OUTPATIENT', appointmentTime: '', needsAccessible: false, notes: '', badgeNumber: '', badgeExpiresAt: '', badgePhoto: null });
+                }}
                 className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
               >
                 Book another
@@ -212,10 +260,48 @@ export default function BookingPage() {
               <div>
                 <p className="text-sm font-medium text-blue-900">I hold a valid Blue Badge</p>
                 <p className="text-xs text-blue-700 mt-0.5">
-                  You will be assigned an accessible bay. Staff will verify your badge on arrival.
+                  You will be assigned an accessible bay. Upload a photo of your badge below — staff review it
+                  before your visit, not at the barrier.
                 </p>
               </div>
             </label>
+
+            {form.needsAccessible && (
+              <div className="mt-4 pt-4 border-t border-blue-200 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-blue-900 mb-1">Badge number</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.badgeNumber}
+                    onChange={e => setForm(f => ({ ...f, badgeNumber: e.target.value }))}
+                    className="w-full border border-blue-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g. HDN123456"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-blue-900 mb-1">Badge expiry date</label>
+                  <input
+                    type="date"
+                    required
+                    min={new Date().toISOString().split('T')[0]}
+                    value={form.badgeExpiresAt}
+                    onChange={e => setForm(f => ({ ...f, badgeExpiresAt: e.target.value }))}
+                    className="w-full border border-blue-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-blue-900 mb-1">Photo of badge</label>
+                  <input
+                    type="file"
+                    required
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={e => setForm(f => ({ ...f, badgePhoto: e.target.files?.[0] ?? null }))}
+                    className="w-full text-xs text-blue-900 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div>

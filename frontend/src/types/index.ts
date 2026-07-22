@@ -131,3 +131,15 @@ export interface UserDistribution {
   premiumParking: DistributionCategory;
   trendVsLastWeekPercent: number;
 }
+
+export type BadgeStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
+
+export interface Badge {
+  id: string;
+  badgeNumber: string;
+  photoUrl: string;
+  status: BadgeStatus;
+  expiresAt: string;
+  rejectionReason?: string;
+  createdAt: string;
+}
