@@ -84,13 +84,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- AWS S3 for Blue Badge photo uploads -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-            <version>2.25.28</version>
-        </dependency>
-
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

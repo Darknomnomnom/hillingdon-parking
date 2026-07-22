@@ -12,9 +12,12 @@ public class EnvConfig {
     @Value("${app.jwt.expiration-ms}")
     public long jwtExpirationMs;
 
-    @Value("${app.aws.bucket-name}")
-    public String s3BucketName;
+    @Value("${app.supabase.url}")
+    public String supabaseUrl;
 
-    @Value("${app.aws.region}")
-    public String awsRegion;
+    @Value("${app.supabase.service-role-key}")
+    public String supabaseServiceRoleKey;
+
+    @Value("${app.supabase.storage-bucket}")
+    public String supabaseStorageBucket;
 }
