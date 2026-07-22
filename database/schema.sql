@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ENUMS
 -- ============================================================
 
-CREATE TYPE user_role AS ENUM ('patient', 'staff');
+CREATE TYPE user_role AS ENUM ('patient', 'staff', 'admin');
 
 CREATE TYPE bay_type AS ENUM ('standard', 'accessible', 'ev', 'premium', 'specific_needs');
 

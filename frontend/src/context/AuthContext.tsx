@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { AuthResponse } from '../types';
+import type { AuthResponse, Role } from '../types';
 
 interface StoredUser {
   userId: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'PATIENT' | 'STAFF';
+  role: Role;
 }
 
 interface AuthContextValue {

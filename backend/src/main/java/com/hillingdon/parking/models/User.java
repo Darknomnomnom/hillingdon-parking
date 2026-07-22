@@ -39,6 +39,6 @@ public class User {
     private Instant createdAt = Instant.now();
 
     public enum Role {
-        PATIENT, STAFF
+        PATIENT, STAFF, ADMIN
     }
 }

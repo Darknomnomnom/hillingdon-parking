@@ -1,8 +1,9 @@
 package com.hillingdon.parking.controllers;
 
+import com.hillingdon.parking.dto.FloorBreakdownItem;
 import com.hillingdon.parking.models.Bay;
 import com.hillingdon.parking.repositories.BayRepository;
-import com.hillingdon.parking.repositories.FloorRepository;
+import com.hillingdon.parking.services.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,18 +17,17 @@ import java.util.List;
 public class BayController {
 
     private final BayRepository bayRepository;
-    private final FloorRepository floorRepository;
+    private final DashboardService dashboardService;
 
     @GetMapping
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<List<Bay>> getAllBays() {
         return ResponseEntity.ok(bayRepository.findAll());
     }
 
     @GetMapping("/floors")
-    @PreAuthorize("hasAnyRole('PATIENT', 'STAFF')")
-    public ResponseEntity<?> getFloorBreakdown() {
-        // Task 6 — dashboard floor breakdown
-        return ResponseEntity.ok().build();
+    @PreAuthorize("hasAnyRole('PATIENT', 'STAFF', 'ADMIN')")
+    public ResponseEntity<List<FloorBreakdownItem>> getFloorBreakdown() {
+        return ResponseEntity.ok(dashboardService.getFloorBreakdown());
     }
 }

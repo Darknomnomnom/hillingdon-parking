@@ -15,7 +15,7 @@ public class BadgeController {
     private final BadgeService badgeService;
 
     @GetMapping("/pending")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getPendingBadges() {
         return ResponseEntity.ok(badgeService.getPendingBadges());
     }
@@ -30,14 +30,14 @@ public class BadgeController {
     }
 
     @PatchMapping("/{id}/approve")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> approveBadge(@PathVariable Long id) {
         // Task 8
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}/reject")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> rejectBadge(@PathVariable Long id) {
         // Task 8
         return ResponseEntity.ok().build();

@@ -15,7 +15,7 @@ public class ANPRController {
     private final AnprService anprService;
 
     @PostMapping("/event")
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<AnprEvent> recordEvent(
             @RequestParam String plate,
             @RequestParam AnprEvent.Direction direction) {

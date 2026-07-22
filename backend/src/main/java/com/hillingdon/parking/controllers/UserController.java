@@ -18,7 +18,7 @@ public class UserController {
     private final UserRepository userRepository;
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('PATIENT', 'STAFF')")
+    @PreAuthorize("hasAnyRole('PATIENT', 'STAFF', 'ADMIN')")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserDetails principal) {
         User user = userRepository.findByEmail(principal.getUsername())
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));

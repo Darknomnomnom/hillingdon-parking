@@ -1,6 +1,5 @@
 package com.hillingdon.parking.dto;
 
-import com.hillingdon.parking.models.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -24,6 +23,4 @@ public class RegisterRequest {
     private String lastName;
 
     private String phone;
-
-    private User.Role role = User.Role.PATIENT;
 }

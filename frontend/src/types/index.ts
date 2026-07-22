@@ -1,4 +1,14 @@
-export type Role = 'PATIENT' | 'STAFF';
+export type Role = 'PATIENT' | 'STAFF' | 'ADMIN';
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  role: Role;
+  createdAt: string;
+}
 
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'ARRIVED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
 
@@ -46,4 +56,78 @@ export interface CreateBookingRequest {
   appointmentTime: string;
   needsAccessible: boolean;
   notes?: string;
+}
+
+export interface Occupancy {
+  occupied: number;
+  total: number;
+}
+
+export interface RevenueBreakdown {
+  prebooked: number;
+  driveIn: number;
+  premium: number;
+  total: number;
+}
+
+export interface CostSavings {
+  prebookedAvgCost: number;
+  driveInAvgCost: number;
+  savingsMessage: string;
+}
+
+export interface KpiSummary {
+  occupancy: Occupancy;
+  specificNeeds: Occupancy;
+  premiumParking: Occupancy;
+  evCharging: Occupancy;
+  premiumRevenueToday: number;
+  totalRevenueToday: RevenueBreakdown;
+  avgParkingDurationMinutes: number;
+  avgDurationByZoneMinutes: Record<string, number>;
+  parkingCostSavings: CostSavings;
+}
+
+export interface FloorBreakdownItem {
+  floorNumber: number;
+  floorName: string;
+  occupied: number;
+  total: number;
+  percentFull: number;
+  evTotal: number;
+  evOccupied: number;
+  vehiclesParked: number;
+}
+
+export interface HourlyTrendPoint {
+  hourLabel: string;
+  occupancyPercent: number;
+  revenue: number;
+}
+
+export interface NoShowBucket {
+  label: string;
+  count: number;
+}
+
+export interface NoShowStats {
+  todayCount: number;
+  weekCount: number;
+  byTimeOfDay: NoShowBucket[];
+  byDayOfWeek: NoShowBucket[];
+  insight: string;
+}
+
+export interface DistributionCategory {
+  count: number;
+  percent: number;
+}
+
+export interface UserDistribution {
+  totalActive: number;
+  prebookedPatients: DistributionCategory;
+  driveInPatients: DistributionCategory;
+  doctors: DistributionCategory;
+  premiumParking: DistributionCategory;
+  trendVsLastWeekPercent: number;
 }

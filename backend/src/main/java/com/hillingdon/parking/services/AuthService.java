@@ -35,7 +35,7 @@ public class AuthService {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setPhone(request.getPhone());
-        user.setRole(request.getRole() != null ? request.getRole() : User.Role.PATIENT);
+        user.setRole(User.Role.PATIENT);
 
         userRepository.save(user);
 
