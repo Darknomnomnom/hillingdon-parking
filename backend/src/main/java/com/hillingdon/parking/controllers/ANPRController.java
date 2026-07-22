@@ -1,5 +1,6 @@
 package com.hillingdon.parking.controllers;
 
+import com.hillingdon.parking.dto.AnprEventResponse;
 import com.hillingdon.parking.models.AnprEvent;
 import com.hillingdon.parking.services.AnprService;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +17,10 @@ public class ANPRController {
 
     @PostMapping("/event")
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
-    public ResponseEntity<AnprEvent> recordEvent(
+    public ResponseEntity<AnprEventResponse> recordEvent(
             @RequestParam String plate,
             @RequestParam AnprEvent.Direction direction) {
-        return ResponseEntity.ok(anprService.processPlateRead(plate, direction));
+        AnprEvent event = anprService.processPlateRead(plate, direction);
+        return ResponseEntity.ok(AnprEventResponse.from(event));
     }
 }
